@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de Tarjeta de Navidad</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    #card-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    #card {
+      width: 600px;
+      height: auto;
+    }
+    #custom-text {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      font-size: 22px;
+      color: #a51b1b;
+      text-shadow: 1px 1px 2px #fff;
+    }
+    #logo-preview {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+    }
+    form {
+      margin-top: 20px;
+    }
+    input, button, textarea {
+      padding: 10px;
+      margin: 10px auto;
+      width: 80%;
+      max-width: 400px;
+      display: block;
+      font-size: 16px;
+    }
+    canvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Personaliza tu Tarjeta de Navidad</h1>
+
+  <div id="card-container">
+    <img id="card" src="tarjeta-navidad.png" alt="Tarjeta de Navidad" />
+    <div id="custom-text"></div>
+    <img id="logo-preview" src="" alt="" />
+  </div>
+
+  <form id="form" action="https://formsubmit.co/maria.rios.emilia@gmail.com" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="_subject" value="Nuevo diseño de tarjeta recibido">
+    <input type="hidden" name="_captcha" value="false">
+
+    <label>Escribe tu mensaje (máx. 200 caracteres):</label>
+    <textarea id="message" name="Mensaje" maxlength="200" required></textarea>
+
+    <label>Sube tu logo (opcional):</label>
+    <input type="file" id="logo" accept="image/*" />
+
+    <input type="hidden" name="Imagen_Tarjeta" id="imagen-generada" />
+
+    <button type="submit">Enviar mi diseño</button>
+  </form>
+
+  <canvas id="canvas" width="600"></canvas>
+
+  <script>
+    const messageInput = document.getElementById('message');
+    const customText = document.getElementById('custom-text');
+    const logoInput = document.getElementById('logo');
+    const logoPreview = document.getElementById('logo-preview');
+    const canvas = document.getElementById('canvas');
+    const cardImg = document.getElementById('card');
+    const form = document.getElementById('form');
+    const imagenInput = document.getElementById('imagen-generada');
+
+    messageInput.addEventListener('input', () => {
+      customText.textContent = messageInput.value;
+    });
+
+    logoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          logoPreview.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const ctx = canvas.getContext('2d');
+      const card = new Image();
+      card.crossOrigin = 'anonymous';
+      card.src = cardImg.src;
+
+      card.onload = function () {
+        canvas.height = card.height * (600 / card.width);
+        canvas.width = 600;
+        ctx.drawImage(card, 0, 0, canvas.width, canvas.height);
+
+        ctx.font = '22px sans-serif';
+        ctx.fillStyle = '#a51b1b';
+        ctx.textAlign = 'center';
+        ctx.fillText(messageInput.value, canvas.width / 2, canvas.height - 40);
+
+        if (logoPreview.src) {
+          const logo = new Image();
+          logo.src = logoPreview.src;
+          logo.onload = function () {
+            ctx.drawImage(logo, canvas.width - 120, 30, 80, 80);
+            imagenInput.value = canvas.toDataURL('image/png');
+            form.submit();
+          };
+        } else {
+          imagenInput.value = canvas.toDataURL('image/png');
+          form.submit();
+        }
+      };
+    });
+  </script>
+</body>
+</html>
